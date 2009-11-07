@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     struct addrinfo*  multicastAddr;            /* Multicast Address */
     struct addrinfo*  localAddr;                /* Local address to bind to */
     struct addrinfo   hints          = { 0 };   /* Hints for name lookup */
-
+    int yes=1;
 
     if ( argc != 3 )
     {
@@ -82,12 +82,23 @@ int main(int argc, char* argv[])
         DieWithError("socket() failed");
     }
 
+
+
+
+    // lose the pesky "Address already in use" error message
+    if (setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) 
+      {
+	DieWithError("setsockopt");
+      } 
+
+
     /* Bind to the multicast port */
     if ( bind(sock, localAddr->ai_addr, localAddr->ai_addrlen) != 0 )
     {
         DieWithError("bind() failed");
     }
-
+    
+    
     /* Join the multicast group. We do this seperately depending on whether we
      * are using IPv4 or IPv6. WSAJoinLeaf is supposed to be IP version agnostic
      * but it looks more complex than just duplicating the required code. */
