@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
   
 
-    if ( argc < 4 || argc > 5 )
+      if ( argc < 4 || argc > 5 )
     {
         fprintf(stderr, "Usage:  %s <Multicast Address> <Port> <Send String> [<TTL>]\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -55,9 +55,19 @@ int main(int argc, char *argv[])
 
     multicastIP   = argv[1];             /* First arg:   multicast IP address */
     multicastPort = argv[2];             /* Second arg:  multicast port */
-    sendString    = argv[3];             /* Third arg:   String to multicast */
+//    sendString    = argv[3];             /* Third arg:   String to multicast */
+
+    int len = 10001;
+    sendString = calloc(len, sizeof(char));
+    int i;
+    for(i = 0; i< len-1;++i)
+    	{
+    	   sendString[i]= 's';
+    	
+    	}
+
     multicastTTL  = (argc == 5 ?         /* Fourth arg:  If supplied, use command-line */
-                     atoi(argv[4]) : 1); /* specified TTL, else use default TTL of 1 */
+                     atoi(argv[4]) : 32); /* specified TTL, else use default TTL of 32 */
     sendStringLen = strlen(sendString);  /* Find length of sendString */
 
     /* Resolve destination address for multicast datagrams */
@@ -85,16 +95,36 @@ int main(int argc, char *argv[])
     {
         DieWithError("setsockopt() failed");
     }
+    
+      /* set the sending interface */
+  //FIXME does it have to be a ipv6 iface in case we're doing ipv6?
+  in_addr_t iface = INADDR_ANY;
 
+  if(setsockopt (sock, 
+		 multicastAddr->ai_family == PF_INET6 ? IPPROTO_IPV6 : IPPROTO_IP,
+		 multicastAddr->ai_family == PF_INET6 ? IPV6_MULTICAST_IF : IP_MULTICAST_IF,
+		 (char*)&iface, sizeof(iface)) != 0)  
+    {
+      DieWithError("rfbCreateMulticastSocket interface setsockopt()");
+    }
+
+
+
+    int nr=0;
     for (;;) /* Run forever */
     {
+        int*  p_nr = (int*)sendString;
+        *p_nr =  nr;
+ 
         if ( sendto(sock, sendString, sendStringLen, 0,
                     multicastAddr->ai_addr, multicastAddr->ai_addrlen) != sendStringLen )
         {
             DieWithError("sendto() sent a different number of bytes than expected");
         }
 
-        usleep(3000); /* Multicast sendString in datagram to clients every 3 seconds */
+        fprintf(stderr, "packet %d sent\n", nr);
+        nr++;
+        usleep(20*1000); 
     }
 
     /* NOT REACHED */

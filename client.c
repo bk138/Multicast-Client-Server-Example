@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
     for (;;) /* Run forever */
     {
         time_t timer;
-        char   recvString[500];      /* Buffer for received string */
+        char   recvString[120000];      /* Buffer for received string */
         int    recvStringLen;        /* Length of received string */
 
         /* Receive a single datagram from the server */
@@ -161,10 +161,13 @@ int main(int argc, char* argv[])
         }
 
         recvString[recvStringLen] = '\0';
+        
+        int* p_nr = (int*)recvString;
 
         /* Print the received string */
         time(&timer);  /* get time stamp to print with recieved data */
-        printf("Time Received: %.*s : %s\n", strlen(ctime(&timer)) - 1, ctime(&timer), recvString);
+        printf("Time Received: %.*s : packet %d, %d bytes\n",
+                strlen(ctime(&timer)) - 1, ctime(&timer), *p_nr, recvStringLen);
     }
 
     /* NOT REACHED */

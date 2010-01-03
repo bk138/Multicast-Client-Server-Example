@@ -28,5 +28,5 @@ server:	 server.o
 
 # clean me up, scotty
 clean:
-	$(RM) $(OUTFILE) $(OBJS)  *~ 
+	$(RM) $(OUTFILE) *.o  *~ 
 
