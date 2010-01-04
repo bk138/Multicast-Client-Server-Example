@@ -49,25 +49,26 @@ int main(int argc, char *argv[])
 
       if ( argc < 4 || argc > 5 )
     {
-        fprintf(stderr, "Usage:  %s <Multicast Address> <Port> <Send String> [<TTL>]\n", argv[0]);
+        fprintf(stderr, "Usage:  %s <Multicast Address> <Port> <packetsize> [<TTL>]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
     multicastIP   = argv[1];             /* First arg:   multicast IP address */
     multicastPort = argv[2];             /* Second arg:  multicast port */
-//    sendString    = argv[3];             /* Third arg:   String to multicast */
+    int len     = atoi(argv[3]);   
 
-    int len = 10001;
+   
     sendString = calloc(len, sizeof(char));
     int i;
-    for(i = 0; i< len-1;++i)
-    	{
-    	   sendString[i]= 's';
+    for(i = 0; i< len;++i)
+      sendString[i]= 's';
+    sendString[len-1] = 0;
     	
-    	}
+    	
 
     multicastTTL  = (argc == 5 ?         /* Fourth arg:  If supplied, use command-line */
                      atoi(argv[4]) : 32); /* specified TTL, else use default TTL of 32 */
+
     sendStringLen = strlen(sendString);  /* Find length of sendString */
 
     /* Resolve destination address for multicast datagrams */
@@ -97,15 +98,15 @@ int main(int argc, char *argv[])
     }
     
       /* set the sending interface */
-  //FIXME does it have to be a ipv6 iface in case we're doing ipv6?
-  in_addr_t iface = INADDR_ANY;
-
-  if(setsockopt (sock, 
-		 multicastAddr->ai_family == PF_INET6 ? IPPROTO_IPV6 : IPPROTO_IP,
-		 multicastAddr->ai_family == PF_INET6 ? IPV6_MULTICAST_IF : IP_MULTICAST_IF,
-		 (char*)&iface, sizeof(iface)) != 0)  
+    //FIXME does it have to be a ipv6 iface in case we're doing ipv6?
+    in_addr_t iface = INADDR_ANY;
+    
+    if(setsockopt (sock, 
+		   multicastAddr->ai_family == PF_INET6 ? IPPROTO_IPV6 : IPPROTO_IP,
+		   multicastAddr->ai_family == PF_INET6 ? IPV6_MULTICAST_IF : IP_MULTICAST_IF,
+		   (char*)&iface, sizeof(iface)) != 0)  
     {
-      DieWithError("rfbCreateMulticastSocket interface setsockopt()");
+      DieWithError("interface setsockopt()");
     }
 
 
