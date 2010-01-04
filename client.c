@@ -148,6 +148,10 @@ int main(int argc, char* argv[])
     freeaddrinfo(localAddr);
     freeaddrinfo(multicastAddr);
 
+    int rcvd=0;
+    int lost=0;
+    
+    int last_p=-1;
     for (;;) /* Run forever */
     {
         time_t timer;
@@ -160,14 +164,29 @@ int main(int argc, char* argv[])
             DieWithError("recvfrom() failed");
         }
 
-        recvString[recvStringLen] = '\0';
-        
-        int* p_nr = (int*)recvString;
+	recvString[recvStringLen] = '\0';
 
+
+        ++rcvd;
+        
+        int this_p = *(int*)recvString;
+
+	if(last_p < 0) //first run
+	  last_p = this_p;
+	else          // second and further runs
+	  {
+	    if(this_p - last_p > 1)
+	      lost += this_p - (last_p+1);
+	    last_p = this_p;
+	  }
+
+        
+        
         /* Print the received string */
         time(&timer);  /* get time stamp to print with recieved data */
+        printf("Packets recvd %d, lost %d, loss ratio %f\n", rcvd, lost, (double)lost/(double)(rcvd+lost));
         printf("Time Received: %.*s : packet %d, %d bytes\n",
-                strlen(ctime(&timer)) - 1, ctime(&timer), *p_nr, recvStringLen);
+                strlen(ctime(&timer)) - 1, ctime(&timer), this_p, recvStringLen);
     }
 
     /* NOT REACHED */
