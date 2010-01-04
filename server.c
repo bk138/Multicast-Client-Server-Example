@@ -47,16 +47,16 @@ int main(int argc, char *argv[])
 
   
 
-      if ( argc < 4 || argc > 5 )
+    if ( argc < 5 || argc > 6 )
     {
-        fprintf(stderr, "Usage:  %s <Multicast Address> <Port> <packetsize> [<TTL>]\n", argv[0]);
+        fprintf(stderr, "Usage:  %s <Multicast Address> <Port> <packetsize> <defer_ms> [<TTL>]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
     multicastIP   = argv[1];             /* First arg:   multicast IP address */
     multicastPort = argv[2];             /* Second arg:  multicast port */
     int len     = atoi(argv[3]);   
-
+    int defer_ms = atoi(argv[4]);
    
     sendString = calloc(len, sizeof(char));
     int i;
@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
     	
     	
 
-    multicastTTL  = (argc == 5 ?         /* Fourth arg:  If supplied, use command-line */
-                     atoi(argv[4]) : 32); /* specified TTL, else use default TTL of 32 */
+    multicastTTL  = (argc == 6 ?         /* Fourth arg:  If supplied, use command-line */
+                     atoi(argv[5]) : 32); /* specified TTL, else use default TTL of 32 */
 
     sendStringLen = strlen(sendString);  /* Find length of sendString */
 
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 
         fprintf(stderr, "packet %d sent\n", nr);
         nr++;
-        usleep(20*1000); 
+        usleep(defer_ms*1000); 
     }
 
     /* NOT REACHED */
