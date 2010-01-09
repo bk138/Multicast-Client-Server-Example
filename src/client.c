@@ -45,6 +45,8 @@ typedef unsigned int in_addr_t;
 #endif
  
 
+#define MULTICAST_SO_RCVBUF 300000
+
 SOCKET     sock;                     /* Socket */
 char*      recvBuf;                  /* Buffer for received data */
 
@@ -121,6 +123,22 @@ int main(int argc, char* argv[])
   /* Bind to the multicast port */
   if ( bind(sock, localAddr->ai_addr, localAddr->ai_addrlen) != 0 )
     DieWithError("bind() failed");
+
+  /* get/set socket receive buffer */
+  int optval=0;
+  socklen_t optval_len = sizeof(optval);
+  int dfltrcvbuf;
+  if(getsockopt(sock, SOL_SOCKET, SO_RCVBUF,(char*)&optval, &optval_len) !=0)
+    DieWithError("getsockopt");
+  dfltrcvbuf = optval;
+  optval = MULTICAST_SO_RCVBUF;
+  if(setsockopt(sock,SOL_SOCKET,SO_RCVBUF,(char*)&optval,sizeof(optval)) != 0) 
+    DieWithError("setsockopt");
+  if(getsockopt(sock, SOL_SOCKET, SO_RCVBUF,(char*)&optval, &optval_len) != 0)
+    DieWithError("getsockopt");
+  printf("tried to set socket receive buffer from %d to %d, got %d\n",
+	  dfltrcvbuf, MULTICAST_SO_RCVBUF, optval);
+
   
     
     
@@ -198,7 +216,7 @@ int main(int argc, char* argv[])
       time(&timer);  /* get time stamp to print with recieved data */
       printf("Packets recvd %d, lost %d, loss ratio %f\n", rcvd, lost, (double)lost/(double)(rcvd+lost));
       printf("Time Received: %.*s : packet %d, %d bytes\n",
-	     strlen(ctime(&timer)) - 1, ctime(&timer), this_p, bytes);
+	     (int)strlen(ctime(&timer)) - 1, ctime(&timer), this_p, bytes);
     }
 
   /* NOT REACHED */
