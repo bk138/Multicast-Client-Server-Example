@@ -77,6 +77,12 @@ int main(int argc, char* argv[])
       exit(EXIT_FAILURE);
     }
 
+#ifdef WIN32
+  WSADATA trash;
+  if(WSAStartup(MAKEWORD(2,0),&trash)!=0)
+    DieWithError("Couldn't init Windows Sockets\n");
+#endif
+
   multicastIP   = argv[1];      /* First arg:  Multicast IP address */
   multicastPort = argv[2];      /* Second arg: Multicast port */
   recvBufLen    = atoi(argv[3]);
@@ -87,8 +93,12 @@ int main(int argc, char* argv[])
   /* Resolve the multicast group address */
   hints.ai_family = PF_UNSPEC;
   hints.ai_flags  = AI_NUMERICHOST;
-  if (getaddrinfo(multicastIP, NULL, &hints, &multicastAddr) != 0)
-    DieWithError("getaddrinfo() failed");
+  int status;
+  if ((status = getaddrinfo(multicastIP, NULL, &hints, &multicastAddr)) != 0)
+    {
+      fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+      DieWithError("getaddrinfo() failed");
+    }
     
   printf("Using %s\n", multicastAddr->ai_family == PF_INET6 ? "IPv6" : "IPv4");
 
