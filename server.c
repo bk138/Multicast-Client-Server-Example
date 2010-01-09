@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   size_t    sendStringLen;          /* Length of string to multicast */
   int       multicastTTL;           /* Arg: TTL of multicast packets */
   int       defer_ms;               /* miliseconds to defer in between sending */
-  struct addrinfo  hints          = { 0 }; /* Hints for name lookup */
+  struct addrinfo hints = { 0 };    /* Hints for name lookup */
   int i;
   
   if ( argc < 5 || argc > 6 )
