@@ -33,6 +33,8 @@ typedef int SOCKET;
 #undef SOCKET
 #include <winsock2.h>
 #define close closesocket
+#else
+#include <unistd.h>
 #endif
 
 
