@@ -18,24 +18,32 @@
  * Modified to run multi-platform by Christian Beier <dontmind@freeshell.org>.
  */
 
-#include <stdio.h>      /* for fprintf() */
+
+
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#define SOCKET int
+
+#ifdef __MINGW32__ 
+#undef SOCKET
+#undef socklen_t 
+#define WINVER 0x0501 
+#include <ws2tcpip.h> 
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#define close closesocket
+#define socklen_t int
+typedef unsigned int in_addr_t;
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/un.h>
 #include <netinet/tcp.h>
-#include <netdb.h>
 #include <arpa/inet.h>
-#include <stdlib.h>     /* for atoi() and exit() */
-#include <string.h>
-
-typedef int SOCKET;
-
-#ifdef __MINGW32__
-#undef SOCKET
-#include <winsock2.h>
-#define close closesocket
-#else
-#include <unistd.h>
+#include <netdb.h>
 #endif
+
+
 
 
 
@@ -132,7 +140,13 @@ int main(int argc, char *argv[])
         
       fprintf(stderr, "packet %d sent\n", nr);
       nr++;
+#ifndef __MINGW32__ 
       usleep(defer_ms*1000); 
+#else 
+      Sleep (defer_ms);
+#endif 
+
+      
     }
 
   /* NOT REACHED */

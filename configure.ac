@@ -25,6 +25,12 @@ esac
 
 
 
+if test "$HOST_IS_WINDOWS" = "yes"; then
+        WSOCKLIB="-lws2_32"
+	AC_SUBST(WSOCKLIB)
+fi
+
+
 AM_CONDITIONAL(MINGW, [ test "$HOST_IS_WINDOWS" = "yes" ])
 AM_CONDITIONAL(DARWIN, [ test "$HOST_IS_DARWIN" = "yes" ])
 
@@ -34,7 +40,7 @@ AC_PROG_CPP
 AC_PROG_CC
 AM_PROG_CC_STDC
 AM_PROG_CC_C_O
-AC_PROG_RANLIB
+
 
 AC_OUTPUT([
 Makefile

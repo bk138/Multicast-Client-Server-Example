@@ -17,26 +17,33 @@
  * 
  * Modified to run multi-platform by Christian Beier <dontmind@freeshell.org>.
  */
- 
-#include <stdio.h>      /* for printf() and fprintf() */
-#include <stdlib.h>     /* for atoi() and exit() */
-#include <string.h>     /* for memset() */
-#include <time.h>       /* for timestamps */
+
+
+
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#define SOCKET int
+
+#ifdef __MINGW32__ 
+#undef SOCKET
+#undef socklen_t 
+#define WINVER 0x0501 
+#include <ws2tcpip.h> 
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#define close closesocket
+#define socklen_t int
+typedef unsigned int in_addr_t;
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/un.h>
 #include <netinet/tcp.h>
-#include <netdb.h>
 #include <arpa/inet.h>
-#include <stdlib.h>     /* for atoi() and exit() */
-
-typedef int SOCKET;
-
-#ifdef __MINGW32__
-#undef SOCKET
-#include <winsock2.h>
-#define close closesocket
+#include <netdb.h>
 #endif
-
+ 
 
 SOCKET     sock;                     /* Socket */
 char*      recvBuf;                  /* Buffer for received data */
@@ -98,7 +105,7 @@ int main(int argc, char* argv[])
     DieWithError("socket() failed");
     
   /* lose the pesky "Address already in use" error message */
-  if (setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) == -1) 
+  if (setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(char*)&yes,sizeof(int)) == -1) 
     DieWithError("setsockopt");
   
   /* Bind to the multicast port */
