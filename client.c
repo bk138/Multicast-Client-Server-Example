@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
 	DieWithError("recvfrom() failed");
         
       ++rcvd;
-      int this_p = *(int*)recvBuf;
+      int this_p = ntohl(*(int*)recvBuf);
 
       if(last_p < 0) /* first run */
 	last_p = this_p;

@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
   for (;;) /* Run forever */
     {
       int*  p_nr = (int*)sendString;
-      *p_nr =  nr;
+      *p_nr = htonl(nr);
  
       if ( sendto(sock, sendString, sendStringLen, 0,
 		  multicastAddr->ai_addr, multicastAddr->ai_addrlen) != sendStringLen )
