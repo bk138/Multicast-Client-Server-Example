@@ -202,15 +202,12 @@ int main(int argc, char* argv[])
       ++rcvd;
       int this_p = ntohl(*(int*)recvBuf);
 
-      if(last_p < 0) /* first run */
-	last_p = this_p;
-      else           /* second and further runs */
+      if(last_p >= 0) /* only check on the second and later runs */
 	{
 	  if(this_p - last_p > 1)
 	    lost += this_p - (last_p+1);
-	  last_p = this_p;
 	}
-
+      last_p = this_p;
         
       /* Print the received string */
       time(&timer);  /* get time stamp to print with recieved data */
