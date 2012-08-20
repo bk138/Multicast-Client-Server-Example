@@ -1,5 +1,0 @@
-This is a simple educational example of a multicast 
-client and server, running under UNIX and Win32.
-
-To compile, use
- ./autogen.sh && make
