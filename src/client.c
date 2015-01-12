@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #define SOCKET int
 
@@ -42,6 +43,12 @@ typedef unsigned int in_addr_t;
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+
+//define IPV6_ADD_MEMBERSHIP for FreeBSD and Mac OS X
+#ifndef IPV6_ADD_MEMBERSHIP
+#define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
+#endif
+
 #endif
  
 
