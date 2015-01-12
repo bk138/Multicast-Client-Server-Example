@@ -44,7 +44,7 @@ typedef unsigned int in_addr_t;
 #include <arpa/inet.h>
 #include <netdb.h>
 
-//define IPV6_ADD_MEMBERSHIP for FreeBSD and Mac OS X
+/* Define IPV6_ADD_MEMBERSHIP for FreeBSD and Mac OS X */
 #ifndef IPV6_ADD_MEMBERSHIP
 #define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
 #endif
