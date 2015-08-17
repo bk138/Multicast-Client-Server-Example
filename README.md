@@ -3,5 +3,6 @@
 This is a simple educational example of a multicast 
 client and server, running under UNIX and Win32.
 
+# Building
 To compile, use
- ./autogen.sh && make
+ autoreconf -fi && configure && make
