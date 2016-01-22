@@ -20,42 +20,18 @@
 
 
 
-#include <unistd.h>
+
 #include <stdio.h>
 #include <stdlib.h>
-#define SOCKET int
-
-#ifdef __MINGW32__ 
-#undef SOCKET
-#undef socklen_t 
-#define WINVER 0x0501 
-#include <ws2tcpip.h> 
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#define close closesocket
-#define socklen_t int
-typedef unsigned int in_addr_t;
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#ifndef __MINGW32__
+#include <unistd.h> /* for usleep() */
 #endif
+#include "msock.h"
 
-
-
-
-
-SOCKET    sock;                   /* Socket */
-struct addrinfo* multicastAddr;   /* Multicast address */
 
 
 static void DieWithError(char* errorMessage)
 {
-  freeaddrinfo(multicastAddr);
-  if(sock >= 0)
-    close(sock);
   fprintf(stderr, "%s\n", errorMessage);
   exit(EXIT_FAILURE);
 }
@@ -63,13 +39,15 @@ static void DieWithError(char* errorMessage)
 
 int main(int argc, char *argv[])
 {
+  SOCKET sock;
+  struct addrinfo *multicastAddr;
   char*     multicastIP;            /* Arg: IP Multicast address */
   char*     multicastPort;          /* Arg: Server port */
   char*     sendString;             /* Arg: String to multicast */
-  size_t    sendStringLen;          /* Length of string to multicast */
+  int       sendStringLen;          /* Length of string to multicast */
   int       multicastTTL;           /* Arg: TTL of multicast packets */
   int       defer_ms;               /* miliseconds to defer in between sending */
-  struct addrinfo hints = { 0 };    /* Hints for name lookup */
+
   int i;
   
   if ( argc < 5 || argc > 6 )
@@ -78,11 +56,6 @@ int main(int argc, char *argv[])
       exit(EXIT_FAILURE);
     }
 
-#ifdef WIN32
-  WSADATA trash;
-  if(WSAStartup(MAKEWORD(2,0),&trash)!=0)
-    DieWithError("Couldn't init Windows Sockets\n");
-#endif
 
   multicastIP   = argv[1];             /* First arg:   multicast IP address */
   multicastPort = argv[2];             /* Second arg:  multicast port */
@@ -100,56 +73,11 @@ int main(int argc, char *argv[])
 		   atoi(argv[5]) : 1); /* specified TTL, else use default TTL of 1 */
 
 
-  /* Resolve destination address for multicast datagrams */
-  hints.ai_family   = PF_UNSPEC;
-  hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_flags    = AI_NUMERICHOST;
-  int status;
-  if ((status = getaddrinfo(multicastIP, multicastPort, &hints, &multicastAddr)) != 0 )
-    {
-      fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-      DieWithError("getaddrinfo() failed");
-    }
 
-
-
-  printf("Using %s\n", multicastAddr->ai_family == PF_INET6 ? "IPv6" : "IPv4");
-
-  /* Create socket for sending multicast datagrams */
-  if ( (sock = socket(multicastAddr->ai_family, multicastAddr->ai_socktype, 0)) < 0 )
-    DieWithError("socket() failed");
-    
-
-  /* Set TTL of multicast packet */
-  if ( setsockopt(sock,
-		  multicastAddr->ai_family == PF_INET6 ? IPPROTO_IPV6        : IPPROTO_IP,
-		  multicastAddr->ai_family == PF_INET6 ? IPV6_MULTICAST_HOPS : IP_MULTICAST_TTL,
-		  (char*) &multicastTTL, sizeof(multicastTTL)) != 0 )
-    DieWithError("setsockopt() failed");
-    
-    
-  /* set the sending interface */
-  if(multicastAddr->ai_family == PF_INET) {
-      in_addr_t iface = INADDR_ANY; /* well, yeah, any */
-      if(setsockopt (sock, 
-		     IPPROTO_IP,
-		     IP_MULTICAST_IF,
-		     (char*)&iface, sizeof(iface)) != 0)  
-	  DieWithError("interface setsockopt()");
-
-  }
-  if(multicastAddr->ai_family == PF_INET6) {
-      unsigned int ifindex = 0; /* 0 means 'default interface'*/
-      if(setsockopt (sock, 
-		     IPPROTO_IPV6,
-		     IPV6_MULTICAST_IF,
-		     (char*)&ifindex, sizeof(ifindex)) != 0)  
-	  DieWithError("interface setsockopt()");
-  }
-
+  sock = mcast_send_socket(multicastIP, multicastPort, multicastTTL, &multicastAddr);
+  if(sock == -1 )
+      DieWithError("mcast_send_socket() failed");
   
-    
-
 
   int nr=0;
   for (;;) /* Run forever */

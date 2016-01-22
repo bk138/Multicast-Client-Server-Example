@@ -6,7 +6,7 @@ AM_CFLAGS =\
 
 bin_PROGRAMS = server client
 
-server_SOURCES = server.c
-client_SOURCES = client.c
+server_SOURCES = server.c msock.c
+client_SOURCES = client.c msock.c
 
 LDADD = @WSOCKLIB@
