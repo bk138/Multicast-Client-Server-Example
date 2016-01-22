@@ -129,14 +129,26 @@ int main(int argc, char *argv[])
     
     
   /* set the sending interface */
-  /* FIXME does it have to be a ipv6 iface in case we're doing ipv6? */
-  in_addr_t iface = INADDR_ANY;
+  if(multicastAddr->ai_family == PF_INET) {
+      in_addr_t iface = INADDR_ANY; /* well, yeah, any */
+      if(setsockopt (sock, 
+		     IPPROTO_IP,
+		     IP_MULTICAST_IF,
+		     (char*)&iface, sizeof(iface)) != 0)  
+	  DieWithError("interface setsockopt()");
+
+  }
+  if(multicastAddr->ai_family == PF_INET6) {
+      unsigned int ifindex = 0; /* 0 means 'default interface'*/
+      if(setsockopt (sock, 
+		     IPPROTO_IPV6,
+		     IPV6_MULTICAST_IF,
+		     (char*)&ifindex, sizeof(ifindex)) != 0)  
+	  DieWithError("interface setsockopt()");
+  }
+
+  
     
-  if(setsockopt (sock, 
-		 multicastAddr->ai_family == PF_INET6 ? IPPROTO_IPV6 : IPPROTO_IP,
-		 multicastAddr->ai_family == PF_INET6 ? IPV6_MULTICAST_IF : IP_MULTICAST_IF,
-		 (char*)&iface, sizeof(iface)) != 0)  
-    DieWithError("interface setsockopt()");
 
 
   int nr=0;
