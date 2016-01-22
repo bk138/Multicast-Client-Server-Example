@@ -20,37 +20,14 @@
 
 
 
+#ifndef __MINGW32__
 #include <unistd.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#define SOCKET int
-
-#ifdef __MINGW32__ 
-#undef SOCKET
-#undef socklen_t 
-#define WINVER 0x0501 
-#include <ws2tcpip.h> 
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#define close closesocket
-#define socklen_t int
-typedef unsigned int in_addr_t;
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-
-/* Define IPV6_ADD_MEMBERSHIP for FreeBSD and Mac OS X */
-#ifndef IPV6_ADD_MEMBERSHIP
-#define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
-#endif
-
-#endif
- 
+#include "msock.h" 
 
 #define MULTICAST_SO_RCVBUF 300000
 
@@ -75,10 +52,7 @@ int main(int argc, char* argv[])
   char*      multicastIP;              /* Arg: IP Multicast Address */
   char*      multicastPort;            /* Arg: Port */
   int        recvBufLen;               /* Length of receive buffer */
-  struct addrinfo*  multicastAddr;     /* Multicast Address */
-  struct addrinfo*  localAddr;         /* Local address to bind to */
-  struct addrinfo   hints  = { 0 };    /* Hints for name lookup */
-  int yes=1;
+
 
   if ( argc != 4 )
     {
@@ -99,99 +73,9 @@ int main(int argc, char* argv[])
   recvBuf = malloc(recvBufLen*sizeof(char));
 
 
-  /* Resolve the multicast group address */
-  hints.ai_family = PF_UNSPEC;
-  hints.ai_flags  = AI_NUMERICHOST;
-  int status;
-  if ((status = getaddrinfo(multicastIP, NULL, &hints, &multicastAddr)) != 0)
-    {
-      fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-      DieWithError("getaddrinfo() failed");
-    }
-    
-  printf("Using %s\n", multicastAddr->ai_family == PF_INET6 ? "IPv6" : "IPv4");
-
-  /* Get a local address with the same family (IPv4 or IPv6) as our multicast group */
-  hints.ai_family   = multicastAddr->ai_family;
-  hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_flags    = AI_PASSIVE; /* Return an address we can bind to */
-  if ( getaddrinfo(NULL, multicastPort, &hints, &localAddr) != 0 )
-    DieWithError("getaddrinfo() failed");
-  
-
-  /* Create socket for receiving datagrams */
-  if ( (sock = socket(localAddr->ai_family, localAddr->ai_socktype, 0)) < 0 )
-    DieWithError("socket() failed");
-    
-  /* lose the pesky "Address already in use" error message */
-  if (setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(char*)&yes,sizeof(int)) == -1) 
-    DieWithError("setsockopt");
-  
-  /* Bind to the multicast port */
-  if ( bind(sock, localAddr->ai_addr, localAddr->ai_addrlen) != 0 )
-    DieWithError("bind() failed");
-
-  /* get/set socket receive buffer */
-  int optval=0;
-  socklen_t optval_len = sizeof(optval);
-  int dfltrcvbuf;
-  if(getsockopt(sock, SOL_SOCKET, SO_RCVBUF,(char*)&optval, &optval_len) !=0)
-    DieWithError("getsockopt");
-  dfltrcvbuf = optval;
-  optval = MULTICAST_SO_RCVBUF;
-  if(setsockopt(sock,SOL_SOCKET,SO_RCVBUF,(char*)&optval,sizeof(optval)) != 0) 
-    DieWithError("setsockopt");
-  if(getsockopt(sock, SOL_SOCKET, SO_RCVBUF,(char*)&optval, &optval_len) != 0)
-    DieWithError("getsockopt");
-  printf("tried to set socket receive buffer from %d to %d, got %d\n",
-	  dfltrcvbuf, MULTICAST_SO_RCVBUF, optval);
-
-  
-    
-    
-  /* Join the multicast group. We do this seperately depending on whether we
-   * are using IPv4 or IPv6. 
-   */
-  if ( multicastAddr->ai_family  == PF_INET &&  
-       multicastAddr->ai_addrlen == sizeof(struct sockaddr_in) ) /* IPv4 */
-    {
-      struct ip_mreq multicastRequest;  /* Multicast address join structure */
-
-      /* Specify the multicast group */
-      memcpy(&multicastRequest.imr_multiaddr,
-	     &((struct sockaddr_in*)(multicastAddr->ai_addr))->sin_addr,
-	     sizeof(multicastRequest.imr_multiaddr));
-
-      /* Accept multicast from any interface */
-      multicastRequest.imr_interface.s_addr = htonl(INADDR_ANY);
-
-      /* Join the multicast address */
-      if ( setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &multicastRequest, sizeof(multicastRequest)) != 0 )
-	DieWithError("setsockopt() failed");
-    }
-  else if ( multicastAddr->ai_family  == PF_INET6 &&
-	    multicastAddr->ai_addrlen == sizeof(struct sockaddr_in6) ) /* IPv6 */
-    {
-      struct ipv6_mreq multicastRequest;  /* Multicast address join structure */
-
-      /* Specify the multicast group */
-      memcpy(&multicastRequest.ipv6mr_multiaddr,
-	     &((struct sockaddr_in6*)(multicastAddr->ai_addr))->sin6_addr,
-	     sizeof(multicastRequest.ipv6mr_multiaddr));
-
-      /* Accept multicast from any interface */
-      multicastRequest.ipv6mr_interface = 0;
-
-      /* Join the multicast address */
-      if ( setsockopt(sock, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (char*) &multicastRequest, sizeof(multicastRequest)) != 0 )
-	DieWithError("setsockopt() failed");
-    }
-  else
-    DieWithError("Neither IPv4 or IPv6");
-  
-
-  freeaddrinfo(localAddr);
-  freeaddrinfo(multicastAddr);
+  sock = mcast_recv_socket(multicastIP, multicastPort, MULTICAST_SO_RCVBUF);
+  if(sock < 0)
+      DieWithError("mcast_recv_socket() failed");
 
   int rcvd=0;
   int lost=0;
