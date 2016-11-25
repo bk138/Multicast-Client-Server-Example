@@ -5,4 +5,7 @@ client and server, running under UNIX and Win32.
 
 # Building
 To compile, use
- autoreconf -fi && configure && make
+ mkdir build
+ cd build
+ cmake ..
+ cmake --build .
