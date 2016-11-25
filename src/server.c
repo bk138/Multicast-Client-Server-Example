@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __MINGW32__
+#ifdef UNIX
 #include <unistd.h> /* for usleep() */
 #endif
 #include "msock.h"
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
         
       fprintf(stderr, "packet %d sent\n", nr);
       nr++;
-#ifndef __MINGW32__ 
+#ifdef UNIX
       usleep(defer_ms*1000); 
 #else 
       Sleep (defer_ms);

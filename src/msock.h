@@ -12,7 +12,7 @@
 /* this is for windows compat */
 #define SOCKET int
 
-#ifdef __MINGW32__ 
+#ifdef WIN32
 #undef SOCKET
 #undef socklen_t 
 #define WINVER 0x0501 

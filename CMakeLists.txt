@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.0)
 project(Multicast-Client-Server-Example LANGUAGES C)
 
+if(UNIX)
+    add_definitions(-DUNIX)
+endif(UNIX)
+
+if(WIN32)
+    add_definitions(-DWIN32)
+endif(WIN32)
+
+
 # the server
 
 SET(server_SRCS

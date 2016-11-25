@@ -20,7 +20,7 @@
 
 
 
-#ifndef __MINGW32__
+#ifdef UNIX
 #include <unistd.h>
 #endif
 #include <stdio.h>
