@@ -13,6 +13,13 @@
 
 #include "msock.h"
 
+static void DieWithError(char* errorMessage)
+{
+  fprintf(stderr, "%s\n", errorMessage);
+  exit(EXIT_FAILURE);
+}
+
+
 SOCKET mcast_send_socket(char* multicastIP, char* multicastPort,  int multicastTTL, struct addrinfo **multicastAddr) {
 
     SOCKET sock;

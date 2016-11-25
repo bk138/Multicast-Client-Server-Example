@@ -35,7 +35,7 @@ SOCKET     sock;                     /* Socket */
 char*      recvBuf;                  /* Buffer for received data */
 
 
-void DieWithError(char* errorMessage)
+static void DieWithError(char* errorMessage)
 {
   fprintf(stderr, "%s\n", errorMessage);
   if(sock >= 0)
