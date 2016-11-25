@@ -6,6 +6,7 @@ client and server, running under UNIX and Win32.
 
 # Building
 To compile, use
+
     mkdir build
     cd build
     cmake ..
