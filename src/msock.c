@@ -137,7 +137,7 @@ SOCKET mcast_recv_socket(char* multicastIP, char* multicastPort, int multicastRe
     hints.ai_family   = multicastAddr->ai_family;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags    = AI_PASSIVE; /* Return an address we can bind to */
-    if ( getaddrinfo(NULL, multicastPort, &hints, &localAddr) != 0 ) {
+    if ((status = getaddrinfo(NULL, multicastPort, &hints, &localAddr)) != 0 ) {
 	fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
 	goto error;
     }
