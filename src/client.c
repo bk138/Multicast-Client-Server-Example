@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
   multicastPort = argv[2];      /* Second arg: Multicast port */
   recvBufLen    = atoi(argv[3]);
  
-  recvBuf = malloc(recvBufLen*sizeof(char));
+  recvBuf = (char*)malloc(recvBufLen*sizeof(char));
 
 
   sock = mcast_recv_socket(multicastIP, multicastPort, MULTICAST_SO_RCVBUF);

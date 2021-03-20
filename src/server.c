@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
   defer_ms = atoi(argv[4]);
    
   /* just fill this with some byte */
-  sendString = calloc(sendStringLen, sizeof(char));
+  sendString = (char*)calloc(sendStringLen, sizeof(char));
   for(i = 0; i<sendStringLen; ++i)
     sendString[i]= 's';
      	
