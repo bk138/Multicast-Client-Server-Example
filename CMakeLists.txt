@@ -8,6 +8,12 @@ endif(UNIX)
 if(WIN32)
     add_definitions(-DWIN32)
     set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ws2_32)
+    # MSVC older than VS 14.0 does not support the C99-style variable declarations in the middle of a block like we have them.
+    # A workaround is to tell the compiler to treat C sources as C++ ones.
+    if(MSVC AND MSVC_VERSION LESS 1900)
+      file(GLOB_RECURSE c_sources "*.c")
+      set_source_files_properties(${c_sources} PROPERTIES LANGUAGE CXX)
+    endif()
 endif(WIN32)
 
 
