@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(Multicast-Client-Server-Example LANGUAGES C)
+project(Multicast-Client-Server-Example)
 
 if(UNIX)
     add_definitions(-DUNIX)
