@@ -7,7 +7,11 @@ endif(UNIX)
 
 if(WIN32)
     add_definitions(-DWIN32)
-    set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ws2_32)
+    if(WINCE)
+      set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ws2)
+    else()
+      set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ws2_32)
+    endif()
     # MSVC older than VS 14.0 does not support the C99-style variable declarations in the middle of a block like we have them.
     # A workaround is to tell the compiler to treat C sources as C++ ones.
     if(MSVC AND MSVC_VERSION LESS 1900)
