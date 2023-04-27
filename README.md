@@ -13,3 +13,9 @@ To compile, use
     cd build
     cmake ..
     cmake --build .
+
+## Crosscompiling from Unix to Android
+
+See https://developer.android.com/ndk/guides/cmake.html as a reference, but
+basically it boils down to adding `-DANDROID_NDK=<path> -DCMAKE_TOOLCHAIN_FILE=<path> -DANDROID_NATIVE_API_LEVEL=<API level you want>`
+to the `cmake ..` step above.
