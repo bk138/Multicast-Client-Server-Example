@@ -24,7 +24,7 @@ to the `cmake ..` step above.
 
 If there is no data coming through when client and server are on different
 machines, the reason can be that IP routing is configured in a way that routes
-multicast traffic to or expectes multicast traffic from an interface the other
+multicast traffic to or expects multicast traffic from an interface the other
 machine is not connected to (the sample programs in this repo do not use the
 `IP_MULTICAST_IF` setsockopt() call yet as it's not cross-platform).
 In this case, you have to add a static route to the client and/or server machine's
